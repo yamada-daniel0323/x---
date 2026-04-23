@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}ツイート管理{% endblock %}
+{% block content %}
+<h1 class="page-title">ツイート管理</h1>
+
+<!-- Add tweet form -->
+<div class="table-wrap" style="margin-bottom:24px;">
+  <div class="table-header">
+    <span class="table-title">ツイート追加</span>
+  </div>
+  <div style="padding:20px;">
+    <form method="post" action="/tweets/add">
+      <div class="form-group">
+        <label class="form-label">ツイート内容（280文字以内）</label>
+        <textarea name="text" class="form-control" placeholder="ツイート内容を入力..." maxlength="280" id="tweet-input"></textarea>
+        <div style="text-align:right;font-size:12px;color:var(--text2);margin-top:4px;">
+          <span id="char-count">0</span> / 280
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">追加</button>
+    </form>
+  </div>
+</div>
+
+<!-- Tweet list -->
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">ストック一覧（{{ tweets | length }}件）</span>
+  </div>
+  {% if tweets %}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>内容</th>
+        <th>状態</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tweet in tweets %}
+      <tr>
+        <td style="color:var(--text2);width:40px;">{{ loop.index }}</td>
+        <td style="max-width:400px;word-break:break-all;">{{ tweet.text }}</td>
+        <td>
+          {% if tweet.posted %}
+          <span class="badge badge-info">投稿済</span>
+          {% else %}
+          <span class="badge badge-success">未投稿</span>
+          {% endif %}
+        </td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="/tweets/post/{{ loop.index0 }}" style="display:inline;" onsubmit="return confirm('このツイートを今すぐ投稿しますか？')">
+            <button class="btn btn-primary btn-sm" type="submit">投稿</button>
+          </form>
+          <form method="post" action="/tweets/delete/{{ loop.index0 }}" style="display:inline;">
+            <button class="btn btn-danger btn-sm" type="submit" onclick="return confirm('削除しますか？')">削除</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+    <p>ツイートがありません。追加してください。</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+const input = document.getElementById('tweet-input');
+const counter = document.getElementById('char-count');
+input.addEventListener('input', () => {
+  counter.textContent = input.value.length;
+  counter.style.color = input.value.length > 260 ? '#f4212e' : 'var(--text2)';
+});
+</script>
+{% endblock %}

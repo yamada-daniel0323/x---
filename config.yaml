@@ -1,0 +1,52 @@
+# 投稿スケジュール設定
+schedule:
+  times:
+    - "09:00"
+    - "12:00"
+    - "18:00"
+    - "21:00"
+  # バズネタ収集の実行時刻（投稿前に実行）
+  scrape_time: "07:00"
+  # アナリティクス収集時刻（1日の終わりに記録）
+  analytics_time: "23:30"
+
+# コンテンツ設定
+content:
+  file: "tweets.csv"
+  # random: ランダム順, sequential: 順番通り
+  mode: "random"
+
+# ブラウザ設定
+browser:
+  # trueにするとブラウザ画面が表示される（デバッグ用）
+  headless: false
+  # ログイン後のセッションを保存するファイル
+  session_file: "session.json"
+  # 実際のChromeを使う場合のパス（空欄でPlaywright内蔵Chromiumを使用）
+  chrome_path: 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+
+# スクレイピング設定
+scraping:
+  # 監視するアカウント（@なし）空にするとスキップ
+  accounts: []
+  # キーワード・ハッシュタグ検索（X検索構文が使える）
+  keywords:
+    - "#AI漫画 #R18 -is:retweet"
+    - "#AI生成漫画 -is:retweet"
+    - "#AIイラスト #R18 -is:retweet"
+    - "AI生成 漫画 R18 -is:retweet"
+  # バズ判定の閾値（いいね数）
+  min_likes: 50
+  # 1キーワードあたり取得するツイート数
+  tweets_per_account: 20
+  # 収集結果の保存先
+  output_file: "buzz_tweets.csv"
+  # 収集したネタをtweets.csvに自動追記するか
+  auto_append: false
+  # バズネタをもとにClaudeが生成するオリジナルツイート数（0で無効）
+  generate_count: 5
+
+# ログ設定
+logging:
+  level: "INFO"
+  file: "logs/x_automation.log"

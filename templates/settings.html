@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}設定{% endblock %}
+{% block content %}
+<h1 class="page-title">設定</h1>
+
+<div class="table-wrap" style="margin-bottom:24px;">
+  <div class="table-header">
+    <span class="table-title">投稿スケジュール</span>
+  </div>
+  <div style="padding:20px;">
+    <form method="post" action="/settings/save">
+      <div class="form-group">
+        <label class="form-label">投稿時刻（カンマ区切り、例: 09:00,12:00,18:00,21:00）</label>
+        <input type="text" name="times" class="form-control" value="{{ config.schedule.times | join(',') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">バズネタ収集時刻</label>
+        <input type="text" name="scrape_time" class="form-control" value="{{ config.schedule.scrape_time }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">アナリティクス収集時刻</label>
+        <input type="text" name="analytics_time" class="form-control" value="{{ config.schedule.analytics_time }}">
+      </div>
+
+      <hr style="border-color:var(--border);margin:20px 0;">
+
+      <div class="form-group">
+        <label class="form-label">監視アカウント（カンマ区切り、@なし）</label>
+        <input type="text" name="accounts" class="form-control" value="{{ config.scraping.accounts | join(',') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">バズ判定いいね数</label>
+        <input type="number" name="min_likes" class="form-control" value="{{ config.scraping.min_likes }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">バズネタを自動追記する</label>
+        <select name="auto_append" class="form-control">
+          <option value="true" {% if config.scraping.auto_append %}selected{% endif %}>はい</option>
+          <option value="false" {% if not config.scraping.auto_append %}selected{% endif %}>いいえ</option>
+        </select>
+      </div>
+
+      <hr style="border-color:var(--border);margin:20px 0;">
+
+      <div class="form-group">
+        <label class="form-label">投稿モード</label>
+        <select name="mode" class="form-control">
+          <option value="random" {% if config.content.mode == 'random' %}selected{% endif %}>ランダム</option>
+          <option value="sequential" {% if config.content.mode == 'sequential' %}selected{% endif %}>順番通り</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary">保存</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">システム情報</span>
+  </div>
+  <div style="padding:20px;">
+    <table>
+      <tbody>
+        <tr><td style="color:var(--text2);width:160px;">投稿ストック</td><td>{{ tweet_count }}件</td></tr>
+        <tr><td style="color:var(--text2);">投稿履歴</td><td>{{ history_count }}件</td></tr>
+        <tr><td style="color:var(--text2);">バズネタ</td><td>{{ buzz_count }}件</td></tr>
+        <tr><td style="color:var(--text2);">ログファイル</td><td>logs/x_automation.log</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

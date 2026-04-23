@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}アナリティクス{% endblock %}
+{% block content %}
+<h1 class="page-title">アナリティクス</h1>
+
+<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+  <form method="post" action="/analytics/fetch">
+    <button class="btn btn-primary" type="submit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      データ取得
+    </button>
+  </form>
+  <form method="post" action="/analytics/chart">
+    <button class="btn btn-ghost" type="submit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      グラフ更新
+    </button>
+  </form>
+</div>
+
+<!-- Charts -->
+{% if charts %}
+<div style="margin-bottom:24px;">
+  <div class="table-wrap" style="margin-bottom:16px;">
+    <div class="table-header"><span class="table-title">フォロワー数推移</span></div>
+    <div style="padding:16px;">
+      <img src="/static/chart_followers.png?v={{ cache_bust }}" class="chart-img" alt="フォロワー推移">
+    </div>
+  </div>
+  <div class="table-wrap" style="margin-bottom:16px;">
+    <div class="table-header"><span class="table-title">日別インプレッション</span></div>
+    <div style="padding:16px;">
+      <img src="/static/chart_impressions.png?v={{ cache_bust }}" class="chart-img" alt="インプレッション">
+    </div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header"><span class="table-title">エンゲージメント率 上位ツイート</span></div>
+    <div style="padding:16px;">
+      <img src="/static/chart_engagement.png?v={{ cache_bust }}" class="chart-img" alt="エンゲージメント率">
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="table-wrap" style="margin-bottom:24px;">
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+    <p>グラフがまだありません。「データ取得」→「グラフ更新」を実行してください。</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Tweet stats table -->
+{% if stats %}
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">ツイート別成績</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>内容</th>
+        <th>IMP</th>
+        <th class="hide-mobile">Like</th>
+        <th class="hide-mobile">RT</th>
+        <th>率</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in stats %}
+      <tr>
+        <td style="font-size:13px;max-width:200px;">{{ s.tweet_preview }}</td>
+        <td>{{ '{:,}'.format(s.impressions | int) }}</td>
+        <td class="hide-mobile" style="color:var(--danger);">{{ s.likes }}</td>
+        <td class="hide-mobile" style="color:var(--accent2);">{{ s.retweets }}</td>
+        <td style="color:var(--accent);">{{ s.engagement_rate }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

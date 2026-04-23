@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}投稿履歴{% endblock %}
+{% block content %}
+<h1 class="page-title">投稿履歴</h1>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">全履歴（{{ rows | length }}件）</span>
+  </div>
+  {% if rows %}
+  <table>
+    <thead>
+      <tr>
+        <th class="hide-mobile">日時</th>
+        <th>内容</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="hide-mobile" style="color:var(--text2);font-size:12px;white-space:nowrap;">{{ r.posted_at }}</td>
+        <td style="word-break:break-all;">
+          {{ r.text_preview }}
+          <div class="hide-mobile" style="display:none;"></div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px;display:none;" class="show-mobile">{{ r.posted_at }}</div>
+        </td>
+        <td>
+          <span class="badge badge-{{ 'success' if r.status == 'success' else 'danger' }}">
+            {{ '成功' if r.status == 'success' else '失敗' }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <p>投稿履歴がまだありません</p>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+@media (max-width: 768px) {
+  .show-mobile { display:block !important; }
+}
+</style>
+{% endblock %}

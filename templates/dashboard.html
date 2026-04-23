@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}ダッシュボード{% endblock %}
+{% block content %}
+<h1 class="page-title">ダッシュボード</h1>
+
+<div class="cards">
+  <div class="card">
+    <div class="card-label">フォロワー数</div>
+    <div class="card-value blue">{{ followers | default('--') }}</div>
+    <div class="card-sub">最新取得値</div>
+  </div>
+  <div class="card">
+    <div class="card-label">インプレッション(28日)</div>
+    <div class="card-value">{{ impressions | default('--') }}</div>
+    <div class="card-sub">analytics取得値</div>
+  </div>
+  <div class="card">
+    <div class="card-label">投稿済みツイート</div>
+    <div class="card-value green">{{ posted_count }}</div>
+    <div class="card-sub">累計</div>
+  </div>
+  <div class="card">
+    <div class="card-label">未投稿ツイート</div>
+    <div class="card-value yellow">{{ unposted_count }}</div>
+    <div class="card-sub">残りストック</div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="table-wrap" style="margin-bottom:24px;">
+  <div class="table-header">
+    <span class="table-title">クイックアクション</span>
+  </div>
+  <div style="padding:20px;display:flex;flex-wrap:wrap;gap:12px;">
+    <form method="post" action="/post-now">
+      <button class="btn btn-primary" type="submit">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        今すぐ投稿
+      </button>
+    </form>
+    <form method="post" action="/scrape-now">
+      <button class="btn btn-ghost" type="submit">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        バズネタ収集
+      </button>
+    </form>
+    <a href="/analytics" class="btn btn-ghost">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      アナリティクス更新
+    </a>
+  </div>
+</div>
+
+<!-- Recent history -->
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">直近の投稿</span>
+    <a href="/history" class="btn btn-ghost btn-sm">すべて見る</a>
+  </div>
+  {% if recent %}
+  <table>
+    <thead>
+      <tr>
+        <th>投稿内容</th>
+        <th class="hide-mobile">投稿日時</th>
+        <th>状態</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in recent %}
+      <tr>
+        <td>{{ r.text_preview }}</td>
+        <td class="hide-mobile" style="color:var(--text2);font-size:12px;">{{ r.posted_at }}</td>
+        <td>
+          <span class="badge badge-{{ 'success' if r.status == 'success' else 'danger' }}">
+            {{ '成功' if r.status == 'success' else '失敗' }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    <p>まだ投稿履歴がありません</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

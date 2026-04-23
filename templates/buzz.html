@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}バズネタ{% endblock %}
+{% block content %}
+<h1 class="page-title">バズネタ</h1>
+
+<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+  <form method="post" action="/scrape-now">
+    <button class="btn btn-primary" type="submit">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      今すぐ収集
+    </button>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span class="table-title">収集済みバズネタ（{{ buzz | length }}件）</span>
+  </div>
+  {% if buzz %}
+  <table>
+    <thead>
+      <tr>
+        <th>アカウント</th>
+        <th>内容</th>
+        <th class="hide-mobile">❤️</th>
+        <th class="hide-mobile">🔁</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in buzz %}
+      <tr>
+        <td style="white-space:nowrap;color:var(--accent);">@{{ b.account }}</td>
+        <td style="max-width:320px;word-break:break-all;font-size:13px;">{{ b.text[:100] }}{% if b.text|length > 100 %}...{% endif %}</td>
+        <td class="hide-mobile" style="color:var(--danger);">{{ '{:,}'.format(b.likes | int) }}</td>
+        <td class="hide-mobile" style="color:var(--accent2);">{{ '{:,}'.format(b.retweets | int) }}</td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="/buzz/add-to-tweets" style="display:inline;">
+            <input type="hidden" name="text" value="{{ b.text }}">
+            <button class="btn btn-success btn-sm" type="submit">追加</button>
+          </form>
+          <a href="{{ b.url }}" target="_blank" class="btn btn-ghost btn-sm">開く</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+    <p>バズネタがありません。「今すぐ収集」を実行してください。</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

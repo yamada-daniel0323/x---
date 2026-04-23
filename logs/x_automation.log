@@ -1,0 +1,36 @@
+2026-04-21 16:11:01,595 [INFO] content: ツイート選択: 今日学んだこと：完璧主義より完了主義。70点でリリースして改...
+2026-04-21 16:11:16,577 [INFO] history: 履歴記録: [success] 今日学んだこと：完璧主義より完了主義。70点でリリースして改...
+2026-04-21 16:11:16,577 [INFO] browser_poster: 投稿成功
+2026-04-21 16:15:26,950 [INFO] content: ツイート選択: 副業で月5万稼ぐより、本業で月5万昇給する方が難しくて価値が...
+2026-04-21 16:15:59,324 [INFO] history: 履歴記録: [success] 副業で月5万稼ぐより、本業で月5万昇給する方が難しくて価値が...
+2026-04-21 16:15:59,325 [INFO] browser_poster: 投稿成功
+2026-04-21 21:36:35,461 [INFO] scraper: 検索中: #AI漫画 #R18
+2026-04-21 21:37:11,680 [INFO] scraper: キーワード「#AI漫画 #R18」: 6件取得
+2026-04-21 21:37:16,550 [INFO] scraper: 検索中: #AI生成漫画 min_faves:500
+2026-04-21 21:37:35,112 [ERROR] scraper: 検索失敗: #AI生成漫画 min_faves:500
+2026-04-21 21:37:38,509 [INFO] scraper: 検索中: #AIイラスト #R18 min_faves:300
+2026-04-21 21:37:57,398 [ERROR] scraper: 検索失敗: #AIイラスト #R18 min_faves:300
+2026-04-21 21:38:00,768 [INFO] scraper: 検索中: AI生成 漫画 R18 -is:retweet
+2026-04-21 21:38:14,816 [INFO] scraper: キーワード「AI生成 漫画 R18 -is:retweet」: 20件取得
+2026-04-21 21:38:19,611 [INFO] scraper: バズツイート: 0件（300いいね以上）
+2026-04-21 21:38:19,611 [INFO] scraper: バズツイートが見つかりませんでした
+2026-04-21 21:38:52,307 [INFO] scraper: 検索中: #AI漫画 #R18 -is:retweet
+2026-04-21 21:39:20,991 [INFO] scraper: キーワード「#AI漫画 #R18 -is:retweet」: 6件取得
+2026-04-21 21:39:24,437 [INFO] scraper: 検索中: #AI生成漫画 -is:retweet
+2026-04-21 21:39:53,240 [INFO] scraper: キーワード「#AI生成漫画 -is:retweet」: 20件取得
+2026-04-21 21:39:58,259 [INFO] scraper: 検索中: #AIイラスト #R18 -is:retweet
+2026-04-21 21:40:27,458 [INFO] scraper: キーワード「#AIイラスト #R18 -is:retweet」: 1件取得
+2026-04-21 21:40:32,480 [INFO] scraper: 検索中: AI生成 漫画 R18 -is:retweet
+2026-04-21 21:40:44,656 [INFO] scraper: キーワード「AI生成 漫画 R18 -is:retweet」: 20件取得
+2026-04-21 21:40:50,897 [INFO] scraper: バズツイート: 1件（100いいね以上）
+2026-04-21 21:40:50,897 [INFO] scraper: 保存完了: buzz_tweets.csv (1件)
+2026-04-21 21:41:07,768 [INFO] scraper: 検索中: #AI漫画 #R18 -is:retweet
+2026-04-21 21:41:35,975 [INFO] scraper: キーワード「#AI漫画 #R18 -is:retweet」: 6件取得
+2026-04-21 21:41:40,718 [INFO] scraper: 検索中: #AI生成漫画 -is:retweet
+2026-04-21 21:42:10,345 [INFO] scraper: キーワード「#AI生成漫画 -is:retweet」: 20件取得
+2026-04-21 21:42:13,578 [INFO] scraper: 検索中: #AIイラスト #R18 -is:retweet
+2026-04-21 21:42:40,418 [INFO] scraper: キーワード「#AIイラスト #R18 -is:retweet」: 1件取得
+2026-04-21 21:42:45,357 [INFO] scraper: 検索中: AI生成 漫画 R18 -is:retweet
+2026-04-21 21:42:59,966 [INFO] scraper: キーワード「AI生成 漫画 R18 -is:retweet」: 20件取得
+2026-04-21 21:43:05,300 [INFO] scraper: バズツイート: 3件（50いいね以上）
+2026-04-21 21:43:05,301 [INFO] scraper: 保存完了: buzz_tweets.csv (3件)
