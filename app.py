@@ -5,7 +5,7 @@ import yaml
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, Response
 
 load_dotenv()
 
@@ -13,6 +13,8 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "x-auto-default-secret-key-change-me")
 
 logging.basicConfig(level=logging.INFO)
+
+
 
 
 def load_config() -> dict:
@@ -77,6 +79,22 @@ def load_impressions_latest() -> str:
         return "--"
     total = sum(int(r.get("impressions") or 0) for r in stats[-50:])
     return f"{total:,}"
+
+
+# ── Auth ────────────────────────────────────────────
+
+@app.before_request
+def check_auth():
+    user = os.environ.get("DASH_USER", "")
+    passwd = os.environ.get("DASH_PASS", "")
+    if not user:
+        return
+    auth = request.authorization
+    if not auth or auth.username != user or auth.password != passwd:
+        return Response(
+            "認証が必要です", 401,
+            {"WWW-Authenticate": 'Basic realm="X Dashboard"'}
+        )
 
 
 # ── Routes ──────────────────────────────────────────
@@ -191,17 +209,76 @@ def history_page():
 
 @app.route("/analytics")
 def analytics_page():
-    from analytics import load_tweet_stats
-    charts = (
-        Path("static/chart_followers.png").exists() or
-        Path("logs/chart_followers.png").exists()
-    )
-    stats = sorted(load_tweet_stats(), key=lambda x: int(x.get("impressions") or 0), reverse=True)[:20]
-    return render_template("analytics.html",
-        charts=charts,
-        stats=stats,
-        cache_bust=int(time.time()),
-    )
+    return render_template("analytics.html")
+
+
+@app.route("/analytics/data")
+def analytics_data():
+    from analytics import load_followers_history, load_tweet_stats
+    from flask import jsonify
+
+    followers_rows = load_followers_history()
+    tweet_rows = load_tweet_stats()
+
+    # フォロワー推移
+    followers_chart = {
+        "labels": [r["date"] for r in followers_rows],
+        "data": [int(r["followers"]) for r in followers_rows],
+    }
+
+    # 日別インプレッション・エンゲージメント集計
+    by_date: dict = {}
+    for r in tweet_rows:
+        d = r["date"]
+        if d not in by_date:
+            by_date[d] = {"impressions": 0, "engagements": 0, "count": 0}
+        by_date[d]["impressions"] += int(r.get("impressions") or 0)
+        by_date[d]["engagements"] += int(r.get("engagements") or 0)
+        by_date[d]["count"] += 1
+
+    sorted_dates = sorted(by_date.keys())
+    daily_chart = {
+        "labels": sorted_dates,
+        "impressions": [by_date[d]["impressions"] for d in sorted_dates],
+        "engagement_rates": [
+            round(by_date[d]["engagements"] / by_date[d]["impressions"] * 100, 2)
+            if by_date[d]["impressions"] > 0 else 0.0
+            for d in sorted_dates
+        ],
+    }
+
+    # ツイートランキング（全件）
+    ranking = []
+    for r in tweet_rows:
+        ranking.append({
+            "date": r["date"],
+            "tweet_preview": r.get("tweet_preview", ""),
+            "impressions": int(r.get("impressions") or 0),
+            "engagements": int(r.get("engagements") or 0),
+            "likes": int(r.get("likes") or 0),
+            "retweets": int(r.get("retweets") or 0),
+            "replies": int(r.get("replies") or 0),
+            "engagement_rate": float(r.get("engagement_rate") or 0),
+        })
+    ranking.sort(key=lambda x: x["impressions"], reverse=True)
+
+    # KPI サマリー
+    total_impressions = sum(r["impressions"] for r in ranking)
+    total_engagements = sum(r["engagements"] for r in ranking)
+    avg_rate = round(total_engagements / total_impressions * 100, 2) if total_impressions > 0 else 0.0
+    latest_followers = int(followers_rows[-1]["followers"]) if followers_rows else 0
+
+    return jsonify({
+        "kpi": {
+            "followers": latest_followers,
+            "total_impressions": total_impressions,
+            "avg_engagement_rate": avg_rate,
+            "total_posts": len(ranking),
+        },
+        "followers_chart": followers_chart,
+        "daily_chart": daily_chart,
+        "ranking": ranking,
+    })
 
 
 @app.route("/analytics/fetch", methods=["POST"])
@@ -212,20 +289,6 @@ def analytics_fetch():
         flash("アナリティクスデータを取得しました", "success")
     except Exception as e:
         flash(f"取得失敗: {e}", "danger")
-    return redirect(url_for("analytics_page"))
-
-
-@app.route("/analytics/chart", methods=["POST"])
-def analytics_chart():
-    try:
-        from chart import run_all, chart_followers, chart_impressions, chart_engagement
-        # グラフをstaticフォルダにも出力
-        chart_followers("static/chart_followers.png")
-        chart_impressions("static/chart_impressions.png")
-        chart_engagement("static/chart_engagement.png")
-        flash("グラフを更新しました", "success")
-    except Exception as e:
-        flash(f"グラフ生成失敗: {e}", "danger")
     return redirect(url_for("analytics_page"))
 
 
@@ -257,6 +320,29 @@ def settings_save():
     save_config(cfg)
     flash("設定を保存しました", "success")
     return redirect(url_for("settings_page"))
+
+
+@app.route("/scheduler/status")
+def scheduler_status():
+    from flask import jsonify
+    import scheduler_state as state
+    return jsonify(state.load())
+
+
+@app.route("/scheduler/pause", methods=["POST"])
+def scheduler_pause():
+    import scheduler_state as state
+    state.set_paused(True)
+    flash("スケジューラーを一時停止しました", "warning")
+    return redirect(url_for("dashboard"))
+
+
+@app.route("/scheduler/resume", methods=["POST"])
+def scheduler_resume():
+    import scheduler_state as state
+    state.set_paused(False)
+    flash("スケジューラーを再開しました", "success")
+    return redirect(url_for("dashboard"))
 
 
 @app.route("/post-now", methods=["POST"])

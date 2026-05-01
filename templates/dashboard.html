@@ -1,7 +1,28 @@
 {% extends "base.html" %}
 {% block title %}ダッシュボード{% endblock %}
 {% block content %}
+<style>
+  .sched-bar { display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px; margin-bottom:20px; flex-wrap:wrap; }
+  .sched-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .sched-dot.on  { background:#17BF63; box-shadow:0 0 6px #17BF6388; }
+  .sched-dot.off { background:#888; }
+  .sched-dot.pause { background:#F5A623; box-shadow:0 0 6px #F5A62388; }
+  .sched-label { font-weight:600; font-size:14px; }
+  .sched-meta  { font-size:12px; color:var(--muted); margin-left:4px; }
+  .next-jobs   { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
+  .next-job-badge { background:rgba(255,255,255,.06); border:1px solid var(--border); border-radius:20px; padding:3px 10px; font-size:11px; white-space:nowrap; }
+</style>
+
 <h1 class="page-title">ダッシュボード</h1>
+
+<!-- Scheduler status bar -->
+<div class="sched-bar" id="sched-bar">
+  <div class="sched-dot off" id="sched-dot"></div>
+  <span class="sched-label" id="sched-label">スケジューラー確認中...</span>
+  <span class="sched-meta" id="sched-meta"></span>
+  <div class="next-jobs" id="next-jobs"></div>
+  <div id="sched-actions" style="display:none;gap:6px;display:flex;flex-wrap:wrap;"></div>
+</div>
 
 <div class="cards">
   <div class="card">
@@ -87,4 +108,53 @@
   </div>
   {% endif %}
 </div>
+
+<script>
+async function loadSchedulerStatus() {
+  try {
+    const r = await fetch('/scheduler/status');
+    const d = await r.json();
+    const dot   = document.getElementById('sched-dot');
+    const label = document.getElementById('sched-label');
+    const meta  = document.getElementById('sched-meta');
+    const jobs  = document.getElementById('next-jobs');
+    const acts  = document.getElementById('sched-actions');
+
+    if (!d.running) {
+      dot.className = 'sched-dot off';
+      label.textContent = 'スケジューラー停止中';
+      meta.textContent = '→ python start_remote.py で起動してください';
+      return;
+    }
+    if (d.paused) {
+      dot.className = 'sched-dot pause';
+      label.textContent = 'スケジューラー一時停止中';
+    } else {
+      dot.className = 'sched-dot on';
+      label.textContent = 'スケジューラー稼働中';
+    }
+    if (d.started_at) meta.textContent = `起動: ${d.started_at}`;
+
+    if (d.next_jobs && d.next_jobs.length) {
+      const names = {'post_job_with_jitter':'📤投稿','scrape_job':'🔍収集','analytics_job':'📊分析'};
+      jobs.innerHTML = d.next_jobs.slice(0,4).map(j => {
+        const n = names[j.tag] || j.tag;
+        const t = j.next_run.slice(11,16);
+        return `<span class="next-job-badge">${n} ${t}</span>`;
+      }).join('');
+    }
+
+    acts.style.display = 'flex';
+    if (d.paused) {
+      acts.innerHTML = `<form method="post" action="/scheduler/resume"><button class="btn btn-primary btn-sm" type="submit">▶ 再開</button></form>`;
+    } else {
+      acts.innerHTML = `<form method="post" action="/scheduler/pause"><button class="btn btn-ghost btn-sm" type="submit">⏸ 一時停止</button></form>`;
+    }
+  } catch(e) {
+    document.getElementById('sched-label').textContent = 'スケジューラー停止中';
+  }
+}
+loadSchedulerStatus();
+setInterval(loadSchedulerStatus, 30000);
+</script>
 {% endblock %}

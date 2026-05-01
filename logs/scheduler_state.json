@@ -1,0 +1,44 @@
+{
+  "running": true,
+  "paused": false,
+  "started_at": "2026-05-01 16:25:19",
+  "last_post": {
+    "time": null,
+    "text": null,
+    "status": null
+  },
+  "last_scrape": {
+    "time": null,
+    "status": null
+  },
+  "last_analytics": {
+    "time": null,
+    "status": null
+  },
+  "next_jobs": [
+    {
+      "tag": "post_job_with_jitter",
+      "next_run": "2026-05-01 18:00:00"
+    },
+    {
+      "tag": "post_job_with_jitter",
+      "next_run": "2026-05-01 21:00:00"
+    },
+    {
+      "tag": "analytics_job",
+      "next_run": "2026-05-01 23:30:00"
+    },
+    {
+      "tag": "scrape_job",
+      "next_run": "2026-05-02 07:00:00"
+    },
+    {
+      "tag": "post_job_with_jitter",
+      "next_run": "2026-05-02 09:00:00"
+    },
+    {
+      "tag": "post_job_with_jitter",
+      "next_run": "2026-05-02 12:00:00"
+    }
+  ]
+}

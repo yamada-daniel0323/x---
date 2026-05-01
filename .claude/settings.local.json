@@ -10,7 +10,16 @@
       "Bash(taskkill //F //IM python.exe)",
       "Bash(python *)",
       "Bash(pip show *)",
-      "Skill(claude-api)"
+      "Skill(claude-api)",
+      "Bash(curl -s http://localhost:5000/tweets)",
+      "Bash(curl -s http://localhost:5000/)",
+      "Bash(curl -s http://localhost:5000/analytics/data)",
+      "Bash(curl -sv http://localhost:5000/analytics/data)",
+      "PowerShell(Stop-Process *)",
+      "Bash(curl *)",
+      "Bash(ngrok version *)",
+      "Bash(cloudflared version *)",
+      "PowerShell(Get-Process python -ErrorAction SilentlyContinue | Select-Object Id, CPU, StartTime, @{N='Args';E={$_.MainWindowTitle}})"
     ]
   }
 }

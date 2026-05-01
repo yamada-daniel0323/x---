@@ -7,6 +7,9 @@ import anthropic
 
 logger = logging.getLogger(__name__)
 
+# モジュールレベルでクライアントを生成（プロンプトキャッシュの再利用に必要）
+client = anthropic.Anthropic()
+
 SYSTEM_PROMPT = """あなたはアダルト向けAI生成漫画・イラストを扱うXアカウントの中の人です。
 バズっているツイートを参考に、オリジナルの投稿文を日本語で作成してください。
 
@@ -63,14 +66,20 @@ def generate_tweet(buzz_filepath: str = None) -> str | None:
     # バズツイートをシャッフルして多様性を出す
     sample = random.sample(buzz, min(10, len(buzz)))
 
-    client = anthropic.Anthropic()
     try:
         response = client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=300,
-            system=SYSTEM_PROMPT,
+            system=[{
+                "type": "text",
+                "text": SYSTEM_PROMPT,
+                "cache_control": {"type": "ephemeral"},
+            }],
             messages=[{"role": "user", "content": build_user_prompt(sample)}],
         )
+        cache_read = getattr(response.usage, "cache_read_input_tokens", 0)
+        if cache_read:
+            logger.debug(f"プロンプトキャッシュヒット: {cache_read} tokens")
         text = response.content[0].text.strip()
         logger.info(f"生成ツイート: {text[:50]}...")
         return text

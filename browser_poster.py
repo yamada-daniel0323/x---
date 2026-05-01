@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import random
 import logging
@@ -19,6 +20,16 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0",
 ]
+
+
+def _set_clipboard(text: str):
+    """PowerShell経由でWindowsクリップボードにテキストをセット（ブラウザフォーカス不要）"""
+    env = os.environ.copy()
+    env["_CLIP_TEXT"] = text
+    subprocess.run(
+        ["powershell", "-NoProfile", "-Command", "Set-Clipboard -Value $env:_CLIP_TEXT"],
+        env=env, capture_output=True, check=True,
+    )
 
 
 def _rand_sleep(lo: float = 1.5, hi: float = 3.5):
@@ -231,16 +242,10 @@ def _compose_tweet(page, text: str, image_path: str = "") -> bool:
         logger.info(f"画像添付: {image_path}")
         _rand_sleep(1.0, 2.0)
 
-    # DraftJS向け: CompositionEvent + execCommand で日本語入力
-    page.evaluate("""(text) => {
-        const el = document.querySelectorAll('[data-testid="tweetTextarea_0"]')[0];
-        el.focus();
-        el.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true, data: '' }));
-        el.dispatchEvent(new CompositionEvent('compositionupdate', { bubbles: true, data: text }));
-        document.execCommand('insertText', false, text);
-        el.dispatchEvent(new CompositionEvent('compositionend', { bubbles: true, data: text }));
-        el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertCompositionText', data: text }));
-    }""", text)
+    # OSクリップボード経由でテキスト入力（ブラウザフォーカス不要）
+    _set_clipboard(text)
+    _rand_sleep(0.3, 0.6)
+    textarea_loc.press("Control+v")
 
     # 入力後、人間らしく内容を確認する間を置く
     _human_sleep()

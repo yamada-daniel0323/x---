@@ -1,13 +1,16 @@
 # 投稿スケジュール設定
 schedule:
-  times:
-    - "09:00"
-    - "12:00"
-    - "18:00"
-    - "21:00"
-  # バズネタ収集の実行時刻（投稿前に実行）
+  # 1日の投稿回数
+  posts_per_day: 4
+  # 投稿ウィンドウ（この時間帯の中でランダムに投稿）
+  windows:
+    - ["08:00", "10:30"]
+    - ["11:30", "14:00"]
+    - ["17:00", "19:30"]
+    - ["20:00", "22:30"]
+  # バズネタ収集の実行時刻
   scrape_time: "07:00"
-  # アナリティクス収集時刻（1日の終わりに記録）
+  # アナリティクス収集時刻
   analytics_time: "23:30"
 
 # コンテンツ設定
@@ -41,10 +44,10 @@ scraping:
   tweets_per_account: 20
   # 収集結果の保存先
   output_file: "buzz_tweets.csv"
-  # 収集したネタをtweets.csvに自動追記するか
+  # 収集したネタをtweets.csvに自動追記するか（AIが生成するので通常false）
   auto_append: false
   # バズネタをもとにClaudeが生成するオリジナルツイート数（0で無効）
-  generate_count: 5
+  generate_count: 8
 
 # ログ設定
 logging:

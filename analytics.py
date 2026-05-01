@@ -92,63 +92,72 @@ def scrape_analytics(session_file: str = None) -> dict:
 
         try:
             # --- フォロワー数をプロフィールから取得 ---
-            page.goto("https://x.com/home", wait_until="networkidle", timeout=30000)
-            _rand_sleep(2, 4)
+            page.goto("https://x.com/home", wait_until="load", timeout=60000)
+            _rand_sleep(3, 5)
 
             # サイドバーのアカウント情報からユーザー名取得
             try:
-                account_el = page.query_selector('[data-testid="SideNav_AccountSwitcher_Button"]')
                 username = ""
+                account_el = page.query_selector('[data-testid="SideNav_AccountSwitcher_Button"]')
                 if account_el:
-                    href_els = page.query_selector_all('a[href*="/followers"]')
-                    for el in href_els:
-                        href = el.get_attribute("href") or ""
-                        m = re.search(r"/([^/]+)/followers", href)
+                    # UserAvatar-Container-<username> から取得
+                    avatar_el = account_el.query_selector('[data-testid^="UserAvatar-Container-"]')
+                    if avatar_el:
+                        testid = avatar_el.get_attribute("data-testid") or ""
+                        m = re.match(r"UserAvatar-Container-(.+)", testid)
                         if m:
                             username = m.group(1)
-                            break
             except Exception:
                 username = ""
 
             if username:
-                page.goto(f"https://x.com/{username}", wait_until="networkidle", timeout=30000)
+                page.goto(f"https://x.com/{username}", wait_until="load", timeout=60000)
                 _rand_sleep(2, 4)
+
+                # フォロワー数: verified_followers または followers リンクから取得
                 try:
-                    followers_el = page.query_selector('a[href*="/followers"] span span')
-                    if followers_el:
-                        result["followers"] = _parse_number(followers_el.inner_text())
+                    for selector in [
+                        f'a[href="/{username}/verified_followers"]',
+                        f'a[href="/{username}/followers"]',
+                        'a[href*="/verified_followers"]',
+                        'a[href*="/followers"]',
+                    ]:
+                        followers_el = page.query_selector(selector)
+                        if followers_el:
+                            text = followers_el.inner_text().strip()
+                            num_part = re.split(r"[\s\n]", text)[0]
+                            val = _parse_number(num_part)
+                            if val >= 0:
+                                result["followers"] = val
+                            break
                 except Exception:
                     pass
 
-            # --- Analytics ページからツイート統計取得 ---
-            if username:
-                analytics_url = TWEET_ANALYTICS_URL.format(username=username)
-                page.goto(analytics_url, wait_until="networkidle", timeout=30000)
-                _rand_sleep(3, 5)
-
-                # 28日間のサマリー取得
+                # プロフィールタイムラインからツイート統計取得
                 try:
-                    summary_els = page.query_selector_all('[class*="summary"] [class*="value"]')
-                    if len(summary_els) >= 2:
-                        result["impressions_28d"] = _parse_number(summary_els[0].inner_text())
-                        result["engagements_28d"] = _parse_number(summary_els[1].inner_text())
-                except Exception:
-                    pass
+                    articles = page.query_selector_all('[data-testid="tweet"]')
+                    total_impressions = 0
+                    total_engagements = 0
+                    for art in articles[:20]:
+                        text_el = art.query_selector('[data-testid="tweetText"]')
+                        tweet_text = text_el.inner_text().strip()[:50] if text_el else ""
 
-                # 個別ツイート統計
-                try:
-                    rows = page.query_selector_all('table tbody tr')
-                    for row in rows[:20]:
-                        cells = row.query_selector_all("td")
-                        if len(cells) < 5:
-                            continue
-                        tweet_text = cells[0].inner_text().strip()[:50]
-                        impressions = _parse_number(cells[1].inner_text())
-                        engagements = _parse_number(cells[2].inner_text())
-                        likes = _parse_number(cells[3].inner_text())
-                        retweets = _parse_number(cells[4].inner_text())
-                        replies = _parse_number(cells[5].inner_text()) if len(cells) > 5 else 0
+                        analytics_link = art.query_selector('a[href*="/analytics"]')
+                        impressions = _parse_number(analytics_link.inner_text().strip()) if analytics_link else 0
+
+                        like_el = art.query_selector('[data-testid="like"] span span')
+                        likes = _parse_number(like_el.inner_text()) if like_el else 0
+
+                        rt_el = art.query_selector('[data-testid="retweet"] span span')
+                        retweets = _parse_number(rt_el.inner_text()) if rt_el else 0
+
+                        reply_el = art.query_selector('[data-testid="reply"] span span')
+                        replies = _parse_number(reply_el.inner_text()) if reply_el else 0
+
+                        engagements = likes + retweets + replies
                         rate = round(engagements / impressions * 100, 2) if impressions > 0 else 0.0
+                        total_impressions += impressions
+                        total_engagements += engagements
 
                         result["tweets"].append({
                             "tweet_preview": tweet_text,
@@ -159,6 +168,9 @@ def scrape_analytics(session_file: str = None) -> dict:
                             "replies": replies,
                             "engagement_rate": rate,
                         })
+
+                    result["impressions_28d"] = total_impressions
+                    result["engagements_28d"] = total_engagements
                 except Exception as e:
                     logger.warning(f"ツイート統計取得エラー: {e}")
 
